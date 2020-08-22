@@ -1,0 +1,82 @@
+<FullView>:
+    GridLayout:
+        id: full_layout
+        size: root.width, root.height
+        cols: 2
+        GridLayout:
+            id: files_menu_layout
+            rows: 3
+            size_hint: (0.25,1)
+            FileChooserListView:
+                id: file_list
+                filters: ('*.jpg', '*.jpeg', '*.png', '*.m4v', '*.mp4', '*.wav')
+                path: "."
+            GridLayout
+                id: sliders
+                cols: 2
+                size_hint: (1,0.3)
+                Label:
+                    text: "Grid Size"
+                    size: self.texture_size
+                Slider:
+                    id:grid_size_slider
+                    range:(20,120)
+                    step:10
+                    on_value:root.drawgrid()
+                Label:
+                    text: "Grid Opacity"
+                    size: self.texture_size
+                Slider:
+                    id:grid_opacity_slider
+                    range:(0,100)
+                    on_value:grid_overlay.opacity=self.value_normalized
+                Label:
+                    text: "Volume"
+                    size: self.texture_size
+                Slider:
+                    id:vid_volume_slider
+                    range:(0,100)
+                    on_value:v1_1.volume=self.value_normalized
+            BoxLayout:
+                id: menu_area
+                size_hint: (1, 0.1)
+                Button:
+                    id: b_add_token
+                    text: "Add Token"
+                    size_hint: (None, None)
+                    size: self.texture_size
+                    on_press: root.tokenbtn()
+                Button:
+                    id: b_set_map
+                    text: "Set Map"
+                    size_hint: (None, None)
+                    size: self.texture_size
+                    on_press: root.mapbtn()
+                Button:
+                    id: b_play_stop
+                    text:"Play" if root.ids.v1_1.state=="stop" else "Stop"
+                    size_hint: (None, None)
+                    size: self.texture_size
+                    on_press: root.playbtn()
+        GridLayout:
+            id: map_tokens_layout
+            rows: 2
+            FloatLayout:
+                id: map_area
+                size_hint: (1, 0.8)
+                Video:
+                    id: v1_1
+                    size_hint: (1,1)
+                    pos: (self.parent.x, self.parent.y)
+                    state: "stop"
+                    volume: 0.0
+                    source: root.active_vid_name
+                    keep_ratio: True
+                BoxLayout:
+                    id: grid_overlay
+                    size_hint: (1,1)
+                    pos: (self.parent.x, self.parent.y)
+                    opacity: 0.0
+            FloatLayout:
+                id: token_area
+                size_hint: (1, 0.2)
