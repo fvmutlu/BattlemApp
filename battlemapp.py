@@ -7,19 +7,36 @@ Created on Fri Aug 14 20:40:07 2020
 
 import kivy
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.graphics import Color, Line
-from kivy.uix.behaviors import DragBehavior
+from kivy.uix.scatter import Scatter
 from kivy.uix.widget import Widget
-from kivy.properties import StringProperty
-
-
-class DraggableImage(DragBehavior, Image):
-    pass
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import StringProperty, BooleanProperty
 
 
 class FullView(Widget):
     active_vid_name = StringProperty()
+    menu_visible = BooleanProperty(True)
+
+    tkn_err_content = BoxLayout(orientation='vertical')
+    tkn_err_content.add_widget(Label(text="Please use PNG, JPG or JPEG files for tokens", size_hint=(1, 0.8)))
+    tkn_err_button = Button(text='Close', size_hint=(1, 0.2))
+    tkn_err_content.add_widget(tkn_err_button)
+    tkn_err_popup = Popup(title="Token filetype error",
+                          content=tkn_err_content,
+                          size_hint=(None, None),
+                          size=(400, 400),
+                          auto_dismiss=False)
+    tkn_err_button.bind(on_press=tkn_err_popup.dismiss)
+
+    def menubtn(self):
+        self.menu_visible = not self.menu_visible
+        Clock.schedule_once(self.gridcb)
 
     def playbtn(self):
         if self.ids.v1_1.state == "stop":
@@ -29,16 +46,18 @@ class FullView(Widget):
 
     def tokenbtn(self):
         tmp_str = "".join(self.ids.file_list.selection)
-        tmp_x = self.ids.map_tokens_layout.x
-        tmp_y = self.ids.map_tokens_layout.y
-        tmp_w = self.ids.map_tokens_layout.width
-        tmp_h = self.ids.map_tokens_layout.height
-        tmp_token = DraggableImage(source=tmp_str,
-                                   keep_ratio=True,
-                                   drag_rectangle=(tmp_x, tmp_y, tmp_w, tmp_h),
-                                   drag_timeout=100000000000,
-                                   drag_distance=0)
-        self.ids.token_area.add_widget(tmp_token)
+        if tmp_str.lower().endswith(('.png', '.jpg', '.jpeg')):
+            tmp_img = Image(source=tmp_str)
+            tmp_token = Scatter(size_hint=(None, None),
+                                size=tmp_img.size,
+                                center=self.ids.token_area.center)
+            tmp_token.add_widget(tmp_img)
+            self.ids.token_area.add_widget(tmp_token)
+        else:
+            self.tkn_err_popup.open()
+
+    def clearbtn(self):
+        self.ids.token_area.clear_widgets()
 
     def mapbtn(self):
         if self.ids.v1_1.state == "play":
@@ -62,11 +81,14 @@ class FullView(Widget):
             tmp_line = Line(points=[map_area.x+w, map_area.y, map_area.x+w, map_area.y+map_area.height])
             self.ids.grid_overlay.canvas.add(tmp_line)
 
-class MyApp(App):
+    def gridcb(self, dt):
+        self.drawgrid()
+
+
+class BattlemApp(App):
     def build(self):
-        self.layout = FullView()
-        return self.layout
+        return FullView()
 
 
 if __name__ == "__main__":
-    MyApp().run()
+    BattlemApp().run()
